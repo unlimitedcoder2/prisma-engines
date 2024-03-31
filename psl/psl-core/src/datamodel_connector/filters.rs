@@ -1,7 +1,5 @@
 //! Client filter types.
 
-#![deny(missing_docs)]
-
 use enumflags2::*;
 
 macro_rules! filters {

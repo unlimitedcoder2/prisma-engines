@@ -1,4 +1,3 @@
-#![deny(rust_2018_idioms, unsafe_code, missing_docs)]
 #![allow(clippy::needless_collect)] // the implementation of that rule is way too eager, it rejects necessary collects
 #![allow(clippy::derive_partial_eq_without_eq)]
 

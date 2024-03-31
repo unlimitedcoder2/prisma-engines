@@ -508,6 +508,7 @@ pub struct Table {
 
 /// The type of an index.
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Copy)]
+#[serde(rename_all = "snake_case")]
 pub enum IndexType {
     /// Unique type.
     Unique,
@@ -557,10 +558,10 @@ pub struct IndexColumn {
 
 /// An index on a table.
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
-struct Index {
-    table_id: TableId,
-    index_name: String,
-    tpe: IndexType,
+pub struct Index {
+    pub table_id: TableId,
+    pub index_name: String,
+    pub tpe: IndexType,
 }
 
 /// A stored procedure (like, the function inside your database).
@@ -703,6 +704,7 @@ impl ColumnTypeFamily {
 
 /// A column's arity.
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Copy)]
+#[serde(rename_all = "snake_case")]
 pub enum ColumnArity {
     /// Required column.
     Required,

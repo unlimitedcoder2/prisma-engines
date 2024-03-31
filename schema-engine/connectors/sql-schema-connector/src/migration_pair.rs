@@ -4,7 +4,7 @@ use sql_schema_describer::{walkers::Walker, SqlSchema};
 /// A pair of items that can exist in two schemas: previous is the item in the previous / old
 /// schema, next is the item in the next / new schema.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct MigrationPair<T> {
+pub struct MigrationPair<T> {
     pub previous: T,
     pub next: T,
 }

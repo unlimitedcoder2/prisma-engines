@@ -5,13 +5,13 @@ use sql_schema_describer::{
     TableColumnId,
 };
 
-mod mssql;
-mod mysql;
-mod postgres;
-mod sqlite;
+pub mod mssql;
+pub mod mysql;
+pub mod postgres;
+pub mod sqlite;
 
 /// Trait to specialize SQL schema diffing (resulting in migration steps) by SQL backend.
-pub(crate) trait SqlSchemaDifferFlavour {
+pub trait SqlSchemaDifferFlavour {
     fn can_alter_primary_keys(&self) -> bool {
         false
     }

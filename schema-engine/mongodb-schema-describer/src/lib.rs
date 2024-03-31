@@ -2,8 +2,6 @@
 //!
 //! A common place to query all the possible schema data we can from a MongoDB instance.
 
-#![deny(missing_docs)]
-
 mod schema;
 mod walkers;
 

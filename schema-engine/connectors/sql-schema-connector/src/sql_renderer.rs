@@ -29,7 +29,7 @@ use sql_schema_describer::{
     SqlSchema,
 };
 
-pub(crate) trait SqlRenderer {
+pub trait SqlRenderer {
     fn quote<'a>(&self, name: &'a str) -> Quoted<&'a str>;
 
     fn render_add_foreign_key(&self, foreign_key: ForeignKeyWalker<'_>) -> String;

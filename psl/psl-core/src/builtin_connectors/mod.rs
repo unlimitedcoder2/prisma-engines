@@ -21,8 +21,7 @@ mod mssql_datamodel_connector;
 #[cfg(feature = "mysql")]
 mod mysql_datamodel_connector;
 mod native_type_definition;
-#[cfg(feature = "postgresql")]
-mod postgres_datamodel_connector;
+pub mod postgres_datamodel_connector;
 #[cfg(feature = "sqlite")]
 mod sqlite_datamodel_connector;
 mod utils;

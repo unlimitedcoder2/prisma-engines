@@ -6,7 +6,7 @@ mod sqlite;
 use psl::parser_database::{ast::FieldArity, walkers::*};
 use sql_schema_describer::{self as sql, ColumnArity, ColumnType, ColumnTypeFamily};
 
-pub(crate) trait SqlSchemaCalculatorFlavour {
+pub trait SqlSchemaCalculatorFlavour {
     fn calculate_enums(&self, _ctx: &mut super::Context<'_>) {}
 
     fn column_default_value_for_autoincrement(&self) -> Option<sql::DefaultValue> {

@@ -1,5 +1,3 @@
-#![deny(rust_2018_idioms, unsafe_code, missing_docs)]
-
 //! This crate defines the API exposed by the connectors to the schema engine core. The entry point for this API is the [MigrationConnector](trait.MigrationConnector.html) trait.
 
 mod checksum;

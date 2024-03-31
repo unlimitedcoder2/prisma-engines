@@ -1,19 +1,18 @@
 //! The SQL migration connector.
 
-#![deny(rust_2018_idioms, unsafe_code, missing_docs)]
-
 mod apply_migration;
-mod database_schema;
+#[allow(missing_docs)]
+pub mod database_schema;
 mod error;
-mod flavour;
+pub mod flavour;
 mod introspection;
 mod migration_pair;
 mod sql_destructive_change_checker;
-mod sql_migration;
+pub mod sql_migration;
 mod sql_migration_persistence;
 mod sql_renderer;
 mod sql_schema_calculator;
-mod sql_schema_differ;
+pub mod sql_schema_differ;
 
 use database_schema::SqlDatabaseSchema;
 use enumflags2::BitFlags;
@@ -29,7 +28,8 @@ const MIGRATIONS_TABLE_NAME: &str = "_prisma_migrations";
 
 /// The top-level SQL migration connector.
 pub struct SqlSchemaConnector {
-    flavour: Box<dyn SqlFlavour + Send + Sync + 'static>,
+    #[allow(missing_docs)]
+    pub flavour: Box<dyn SqlFlavour + Send + Sync + 'static>,
     host: Arc<dyn ConnectorHost>,
 }
 

@@ -1,5 +1,3 @@
-#![deny(missing_docs)]
-
 //! A TestApi that is initialized without IO or async code and can instantiate
 //! multiple schema engines.
 

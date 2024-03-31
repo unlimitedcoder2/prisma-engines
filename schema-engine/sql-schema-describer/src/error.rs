@@ -1,5 +1,3 @@
-#![deny(missing_docs)]
-
 use std::{
     error::Error,
     fmt::{self, Display},

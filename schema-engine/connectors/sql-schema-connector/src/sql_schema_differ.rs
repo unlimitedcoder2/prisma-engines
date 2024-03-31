@@ -1,12 +1,12 @@
-mod column;
-mod differ_database;
-mod enums;
-mod index;
-mod sql_schema_differ_flavour;
-mod table;
+pub mod column;
+pub mod differ_database;
+pub mod enums;
+pub mod index;
+pub mod sql_schema_differ_flavour;
+pub mod table;
 
 pub(crate) use column::{ColumnChange, ColumnChanges};
-pub(crate) use sql_schema_differ_flavour::SqlSchemaDifferFlavour;
+pub use sql_schema_differ_flavour::SqlSchemaDifferFlavour;
 
 use self::differ_database::DifferDatabase;
 use crate::{
@@ -27,6 +27,7 @@ pub(crate) fn calculate_steps(
     let db = DifferDatabase::new(schemas, flavour);
     let mut steps: Vec<SqlMigrationStep> = Vec::new();
 
+    // a
     flavour.push_extension_steps(&mut steps, &db);
 
     push_created_schema_steps(&mut steps, &db);

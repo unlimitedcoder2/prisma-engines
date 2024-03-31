@@ -44,7 +44,7 @@ pub(crate) enum PostgresProvider {
     Unspecified,
 }
 
-pub(crate) struct PostgresFlavour {
+pub struct PostgresFlavour {
     state: State,
     provider: PostgresProvider,
 }
@@ -62,7 +62,7 @@ impl std::fmt::Debug for PostgresFlavour {
 }
 
 impl PostgresFlavour {
-    pub(crate) fn new_postgres() -> Self {
+    pub fn new_postgres() -> Self {
         PostgresFlavour {
             state: State::Initial,
             provider: PostgresProvider::PostgreSql,

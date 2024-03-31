@@ -12,7 +12,7 @@ use schema_connector::{BoxFuture, ConnectorError, ConnectorResult};
 use sql_schema_describer::walkers::TableColumnWalker;
 
 /// Flavour-specific destructive change checks and queries.
-pub(crate) trait DestructiveChangeCheckerFlavour {
+pub trait DestructiveChangeCheckerFlavour {
     /// Check for potential destructive or unexecutable alter column steps.
     fn check_alter_column(
         &self,

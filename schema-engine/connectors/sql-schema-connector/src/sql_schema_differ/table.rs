@@ -5,7 +5,7 @@ use sql_schema_describer::{
     TableId,
 };
 
-pub(crate) struct TableDiffer<'a, 'b> {
+pub struct TableDiffer<'a, 'b> {
     pub(crate) tables: MigrationPair<TableWalker<'a>>,
     pub(crate) db: &'b DifferDatabase<'a>,
 }

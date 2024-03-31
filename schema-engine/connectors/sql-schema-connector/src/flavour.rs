@@ -4,7 +4,7 @@
 
 mod mssql;
 mod mysql;
-mod postgres;
+pub mod postgres;
 mod sqlite;
 
 pub(crate) use mssql::MssqlFlavour;
@@ -99,7 +99,7 @@ where
     }
 }
 
-pub(crate) trait SqlFlavour:
+pub trait SqlFlavour:
     DestructiveChangeCheckerFlavour
     + SqlRenderer
     + SqlSchemaDifferFlavour
