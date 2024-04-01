@@ -1,12 +1,12 @@
-pub mod column;
-pub mod differ_database;
-pub mod enums;
-pub mod index;
-pub mod sql_schema_differ_flavour;
-pub mod table;
+mod column;
+mod differ_database;
+mod enums;
+mod index;
+mod sql_schema_differ_flavour;
+mod table;
 
 pub(crate) use column::{ColumnChange, ColumnChanges};
-pub use sql_schema_differ_flavour::SqlSchemaDifferFlavour;
+pub(crate) use sql_schema_differ_flavour::SqlSchemaDifferFlavour;
 
 use self::differ_database::DifferDatabase;
 use crate::{

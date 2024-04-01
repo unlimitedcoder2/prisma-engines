@@ -1,5 +1,7 @@
 //! Functions and types for conveniently traversing and querying a SqlSchema.
 
+#![deny(missing_docs)]
+
 mod column;
 mod default;
 mod r#enum;

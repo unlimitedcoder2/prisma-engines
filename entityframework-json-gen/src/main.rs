@@ -1,15 +1,44 @@
-use std::{fs, sync::Arc};
+use std::{any::Any, fs, sync::Arc};
 
 use psl::builtin_connectors::PostgresType;
 use psl::SourceFile;
 use schema_connector::{DiffTarget, SchemaConnector};
 use serde::{Deserialize, Serialize};
-use sql_schema_connector::database_schema::SqlDatabaseSchema;
 use sql_schema_connector::SqlSchemaConnector;
 use sql_schema_describer::{
     ColumnArity, ColumnTypeFamily, EnumId, ForeignKeyAction, ForeignKeyWalker, IndexType, IndexWalker, SqlSchema,
-    TableColumnWalker, TableWalker,
+    TableColumnId, TableColumnWalker, TableWalker,
 };
+
+pub struct UnsafeAccessDatabaseSchema(Box<dyn std::any::Any + Send + Sync>);
+
+#[derive(Default, Debug)]
+pub struct UnsafeAccessSqlDatabaseSchema {
+    pub describer_schema: SqlSchema,
+    pub prisma_level_defaults: Vec<TableColumnId>,
+}
+
+/// Foreign key action types (for ON DELETE|ON UPDATE).
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Copy)]
+#[serde(rename_all = "snake_case")]
+pub enum DatabaseForeignKeyAction {
+    /// Produce an error indicating that the deletion or update would create a foreign key
+    /// constraint violation. If the constraint is deferred, this error will be produced at
+    /// constraint check time if there still exist any referencing rows. This is the default action.
+    NoAction,
+    /// Produce an error indicating that the deletion or update would create a foreign key
+    /// constraint violation. This is the same as NO ACTION except that the check is not deferrable.
+    Restrict,
+    /// Delete any rows referencing the deleted row, or update the values of the referencing
+    /// column(s) to the new values of the referenced columns, respectively.
+    Cascade,
+    /// Set the referencing column(s) to null.
+    SetNull,
+    /// Set the referencing column(s) to their default values. (There must be a row in the
+    /// referenced table matching the default values, if they are not null, or the operation
+    /// will fail).
+    SetDefault,
+}
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
@@ -84,7 +113,7 @@ struct DatabaseForeignKey {
     referenced_table_name: String,
     column_names: Vec<String>,
     referenced_column_names: Vec<String>,
-    on_delete_action: ForeignKeyAction,
+    on_delete_action: DatabaseForeignKeyAction,
 }
 
 impl Into<DatabaseForeignKey> for ForeignKeyWalker<'_> {
@@ -101,7 +130,13 @@ impl Into<DatabaseForeignKey> for ForeignKeyWalker<'_> {
                 .referenced_columns()
                 .map(|c| c.name().to_string())
                 .collect::<Vec<String>>(),
-            on_delete_action: self.on_delete_action(),
+            on_delete_action: match self.on_delete_action() {
+                ForeignKeyAction::NoAction => DatabaseForeignKeyAction::NoAction,
+                ForeignKeyAction::Restrict => DatabaseForeignKeyAction::Restrict,
+                ForeignKeyAction::Cascade => DatabaseForeignKeyAction::Cascade,
+                ForeignKeyAction::SetNull => DatabaseForeignKeyAction::SetNull,
+                ForeignKeyAction::SetDefault => DatabaseForeignKeyAction::SetDefault,
+            },
         }
     }
 }
@@ -224,15 +259,13 @@ impl Into<DatabaseIndex> for IndexWalker<'_> {
     }
 }
 
-impl Into<DatabaseSchema> for SqlSchema {
-    fn into(self) -> DatabaseSchema {
-        DatabaseSchema {
-            tables: self.table_walkers().map(|t| t.into()).collect::<Vec<DatabaseTable>>(),
-            foreign_keys: self
-                .walk_foreign_keys()
-                .map(|f| f.into())
-                .collect::<Vec<DatabaseForeignKey>>(),
-        }
+fn create_database_schema(schema: &SqlSchema) -> DatabaseSchema {
+    DatabaseSchema {
+        tables: schema.table_walkers().map(|t| t.into()).collect::<Vec<DatabaseTable>>(),
+        foreign_keys: schema
+            .walk_foreign_keys()
+            .map(|f| f.into())
+            .collect::<Vec<DatabaseForeignKey>>(),
     }
 }
 
@@ -249,16 +282,18 @@ async fn main() -> anyhow::Result<()> {
 
     let schema = pg_connector
         .database_schema_from_diff_target(DiffTarget::Datamodel(source), None, None)
-        .await?
-        .downcast::<SqlDatabaseSchema>();
+        .await?;
 
-    let schema = schema.describer_schema;
+    let schema: UnsafeAccessDatabaseSchema = unsafe { std::mem::transmute(schema) };
 
-    fs::write("schema.json", serde_json::to_string_pretty(&schema)?.as_str())?;
+    // This call requires use of the rust nightly branch and is being tracked in this pr https://github.com/rust-lang/rust/issues/90850
+    // Its been open for three years so just gonna copy the implementation myself
+    // let schema = unsafe { schema.0.downcast_unchecked::<UnsafeAccessSqlDatabaseSchema>() };
+    let schema = unsafe { &*(&*schema.0 as *const dyn Any as *const UnsafeAccessSqlDatabaseSchema) };
 
-    let db_schema: DatabaseSchema = schema.into();
+    let db_schema: DatabaseSchema = create_database_schema(&schema.describer_schema);
 
-    fs::write("dbschema.json", serde_json::to_string_pretty(&db_schema)?.as_str())?;
+    fs::write("dbschema2.json", serde_json::to_string_pretty(&db_schema)?.as_str())?;
 
     Ok(())
 }

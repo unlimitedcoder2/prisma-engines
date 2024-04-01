@@ -731,7 +731,6 @@ impl ColumnArity {
 
 /// Foreign key action types (for ON DELETE|ON UPDATE).
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Copy)]
-#[serde(rename_all = "snake_case")]
 pub enum ForeignKeyAction {
     /// Produce an error indicating that the deletion or update would create a foreign key
     /// constraint violation. If the constraint is deferred, this error will be produced at

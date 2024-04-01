@@ -1,18 +1,17 @@
 //! The SQL migration connector.
 
 mod apply_migration;
-#[allow(missing_docs)]
-pub mod database_schema;
+mod database_schema;
 mod error;
-pub mod flavour;
+mod flavour;
 mod introspection;
 mod migration_pair;
 mod sql_destructive_change_checker;
-pub mod sql_migration;
+mod sql_migration;
 mod sql_migration_persistence;
 mod sql_renderer;
 mod sql_schema_calculator;
-pub mod sql_schema_differ;
+mod sql_schema_differ;
 
 use database_schema::SqlDatabaseSchema;
 use enumflags2::BitFlags;

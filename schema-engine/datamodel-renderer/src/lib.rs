@@ -61,6 +61,8 @@
 //! assert_eq!(expected, &rendered);
 //! ```
 
+#![warn(missing_docs)]
+
 pub mod configuration;
 pub mod datamodel;
 pub mod value;
