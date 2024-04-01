@@ -32,7 +32,6 @@ members = [
   "prisma-schema-wasm",
   "psl/*",
   "quaint",
-  "entityframework-json-gen",
 ]
 
 [workspace.dependencies]
