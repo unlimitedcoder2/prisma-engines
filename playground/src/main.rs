@@ -7,7 +7,8 @@ use serde::{Deserialize, Serialize};
 use sql_schema_connector::database_schema::SqlDatabaseSchema;
 use sql_schema_connector::SqlSchemaConnector;
 use sql_schema_describer::{
-    ColumnArity, ColumnTypeFamily, EnumId, IndexType, IndexWalker, SqlSchema, TableColumnWalker, TableWalker,
+    ColumnArity, ColumnTypeFamily, EnumId, ForeignKeyAction, ForeignKeyWalker, IndexType, IndexWalker, SqlSchema,
+    TableColumnWalker, TableWalker,
 };
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -53,6 +54,35 @@ struct DatabaseColumn {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
+struct DatabaseForeignKey {
+    name: String,
+    table_name: String,
+    referenced_table_name: String,
+    column_names: Vec<String>,
+    referenced_column_names: Vec<String>,
+    on_delete_action: ForeignKeyAction,
+}
+
+impl Into<DatabaseForeignKey> for ForeignKeyWalker<'_> {
+    fn into(self) -> DatabaseForeignKey {
+        DatabaseForeignKey {
+            name: self.constraint_name().expect("No constraint name").to_string(),
+            table_name: self.table().name().to_string(),
+            referenced_table_name: self.referenced_table_name().to_string(),
+            column_names: self
+                .constrained_columns()
+                .map(|c| c.name().to_string())
+                .collect::<Vec<String>>(),
+            referenced_column_names: self
+                .referenced_columns()
+                .map(|c| c.name().to_string())
+                .collect::<Vec<String>>(),
+            on_delete_action: self.on_delete_action(),
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
 struct DatabaseTable {
     name: String,
     columns: Vec<DatabaseColumn>,
@@ -69,6 +99,7 @@ struct DatabaseIndex {
 #[derive(Deserialize, Serialize, Debug, Clone)]
 struct DatabaseSchema {
     tables: Vec<DatabaseTable>,
+    foreign_keys: Vec<DatabaseForeignKey>,
 }
 
 impl Into<DatabaseColumn> for TableColumnWalker<'_> {
@@ -164,13 +195,21 @@ impl Into<DatabaseSchema> for SqlSchema {
     fn into(self) -> DatabaseSchema {
         DatabaseSchema {
             tables: self.table_walkers().map(|t| t.into()).collect::<Vec<DatabaseTable>>(),
+            foreign_keys: self
+                .walk_foreign_keys()
+                .map(|f| f.into())
+                .collect::<Vec<DatabaseForeignKey>>(),
         }
     }
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let f = fs::read_to_string("/home/alex/dev/projects/rokkit/core/schema.prisma").unwrap();
+    let f = if cfg!(target_os = "windows") {
+        fs::read_to_string("C:/Users/alex/dev/projects/rokkit/rokkit/core/schema.prisma")?
+    } else {
+        fs::read_to_string("/home/alex/dev/projects/rokkit/core/schema.prisma")?
+    };
 
     let source = SourceFile::new_allocated(Arc::from(f));
     let mut pg_connector = SqlSchemaConnector::new_postgres();
