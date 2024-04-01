@@ -1,14 +1,10 @@
-use std::{any::Any, fs, sync::Arc};
-
 use psl::builtin_connectors::PostgresType;
-use psl::SourceFile;
-use schema_connector::{DiffTarget, SchemaConnector};
 use serde::{Deserialize, Serialize};
-use sql_schema_connector::SqlSchemaConnector;
 use sql_schema_describer::{
     ColumnArity, ColumnTypeFamily, EnumId, ForeignKeyAction, ForeignKeyWalker, IndexType, IndexWalker, SqlSchema,
     TableColumnId, TableColumnWalker, TableWalker,
 };
+use std::{any::Any, fs};
 
 pub struct UnsafeAccessDatabaseSchema(Box<dyn std::any::Any + Send + Sync>);
 
@@ -269,27 +265,26 @@ fn create_database_schema(schema: &SqlSchema) -> DatabaseSchema {
     }
 }
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
+fn main() -> anyhow::Result<()> {
     let f = if cfg!(target_os = "windows") {
         fs::read_to_string("C:/Users/alex/dev/projects/rokkit/rokkit/core/schema.prisma")?
     } else {
         fs::read_to_string("/home/alex/dev/projects/rokkit/core/schema.prisma")?
     };
 
-    let source = SourceFile::new_allocated(Arc::from(f));
-    let mut pg_connector = SqlSchemaConnector::new_postgres();
-
-    let schema = pg_connector
-        .database_schema_from_diff_target(DiffTarget::Datamodel(source), None, None)
-        .await?;
+    let schema = match sql_schema_connector::custom::create_schema(f.clone().as_str()) {
+        Ok(s) => s,
+        Err(e) => {
+            anyhow::bail!("Error creating schema: {}", e);
+        }
+    };
 
     let schema: UnsafeAccessDatabaseSchema = unsafe { std::mem::transmute(schema) };
+    let schema = unsafe { &*(&*schema.0 as *const dyn Any as *const UnsafeAccessSqlDatabaseSchema) };
 
     // This call requires use of the rust nightly branch and is being tracked in this pr https://github.com/rust-lang/rust/issues/90850
     // Its been open for three years so just gonna copy the implementation myself
     // let schema = unsafe { schema.0.downcast_unchecked::<UnsafeAccessSqlDatabaseSchema>() };
-    let schema = unsafe { &*(&*schema.0 as *const dyn Any as *const UnsafeAccessSqlDatabaseSchema) };
 
     let db_schema: DatabaseSchema = create_database_schema(&schema.describer_schema);
 

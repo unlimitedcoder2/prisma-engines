@@ -2,6 +2,9 @@
 
 #![deny(rust_2018_idioms, unsafe_code, missing_docs)]
 
+/// Custom module
+pub mod custom;
+
 mod apply_migration;
 mod database_schema;
 mod error;

@@ -1206,17 +1206,11 @@ name = "entityframework-json-gen"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "colored",
- "dmmf",
  "psl",
- "psl-core",
- "schema-connector",
- "schema-core",
  "serde",
  "serde_json",
  "sql-schema-connector",
  "sql-schema-describer",
- "tokio",
 ]
 
 [[package]]
