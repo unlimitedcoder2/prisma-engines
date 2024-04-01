@@ -447,7 +447,7 @@ fn render_column_changes(columns: MigrationPair<TableColumnWalker<'_>>, changes:
 // SqlSchema struct, the natural ordering of the indexes matches well with what
 // you would intuitively expect.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum SqlMigrationStep {
+pub(crate) enum SqlMigrationStep {
     CreateSchema(sql_schema_describer::NamespaceId),
     DropExtension(DropExtension),
     CreateExtension(CreateExtension),

@@ -157,7 +157,7 @@ pub(crate) enum ColumnChange {
 // This should be pub(crate), but SqlMigration is exported, so it has to be
 // public at the moment.
 #[derive(Debug, Clone, PartialEq, Default, Eq, Copy)]
-pub struct ColumnChanges {
+pub(crate) struct ColumnChanges {
     pub(crate) type_change: Option<ColumnTypeChange>,
     changes: BitFlags<ColumnChange>,
 }

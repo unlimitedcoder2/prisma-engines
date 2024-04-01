@@ -1202,6 +1202,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c34f04666d835ff5d62e058c3995147c06f42fe86ff053337632bca83e42702d"
 
 [[package]]
+name = "entityframework-json-gen"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "colored",
+ "dmmf",
+ "psl",
+ "psl-core",
+ "schema-connector",
+ "schema-core",
+ "serde",
+ "serde_json",
+ "sql-schema-connector",
+ "sql-schema-describer",
+ "tokio",
+]
+
+[[package]]
 name = "enum-as-inner"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3222,24 +3240,6 @@ name = "pkg-config"
 version = "0.3.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "26072860ba924cbfa98ea39c8c19b4dd6a4a25423dbdf219c1eca91aa0cf6964"
-
-[[package]]
-name = "playground"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "colored",
- "dmmf",
- "psl",
- "psl-core",
- "schema-connector",
- "schema-core",
- "serde",
- "serde_json",
- "sql-schema-connector",
- "sql-schema-describer",
- "tokio",
-]
 
 [[package]]
 name = "plotters"

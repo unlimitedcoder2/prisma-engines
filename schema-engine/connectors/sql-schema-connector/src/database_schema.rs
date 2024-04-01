@@ -6,7 +6,7 @@ use sql_schema_describer::{self as sql, SqlSchema};
 pub struct SqlDatabaseSchema {
     pub describer_schema: SqlSchema,
     /// A _sorted_ array of column ids with prisma-level defaults.
-    pub prisma_level_defaults: Vec<sql::TableColumnId>,
+    pub(crate) prisma_level_defaults: Vec<sql::TableColumnId>,
 }
 
 impl SqlDatabaseSchema {

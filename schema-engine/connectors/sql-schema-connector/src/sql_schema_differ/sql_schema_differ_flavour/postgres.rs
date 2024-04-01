@@ -344,7 +344,7 @@ fn cockroach_native_type_change_riskyness(
     }
 }
 
-pub fn postgres_column_type_change(columns: MigrationPair<TableColumnWalker<'_>>) -> Option<ColumnTypeChange> {
+fn postgres_column_type_change(columns: MigrationPair<TableColumnWalker<'_>>) -> Option<ColumnTypeChange> {
     use ColumnTypeChange::*;
     let previous_type: Option<&PostgresType> = columns.previous.column_native_type();
     let next_type: Option<&PostgresType> = columns.next.column_native_type();
@@ -370,7 +370,7 @@ pub fn postgres_column_type_change(columns: MigrationPair<TableColumnWalker<'_>>
     }
 }
 
-pub fn postgres_native_type_change_riskyness(previous: &PostgresType, next: &PostgresType) -> Option<ColumnTypeChange> {
+fn postgres_native_type_change_riskyness(previous: &PostgresType, next: &PostgresType) -> Option<ColumnTypeChange> {
     use psl::builtin_connectors::PostgresType::*;
     use ColumnTypeChange::*;
 

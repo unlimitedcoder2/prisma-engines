@@ -11,6 +11,30 @@ use sql_schema_describer::{
     TableColumnWalker, TableWalker,
 };
 
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Copy)]
+#[serde(rename_all = "snake_case")]
+pub enum DatabaseIndexType {
+    /// Unique type.
+    Unique,
+    /// Normal type.
+    Normal,
+    /// Fulltext type.
+    Fulltext,
+    /// The table's primary key
+    PrimaryKey,
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Copy)]
+#[serde(rename_all = "snake_case")]
+pub enum DatabaseColumnArity {
+    /// Required column.
+    Required,
+    /// Nullable column.
+    Nullable,
+    /// List type column.
+    List,
+}
+
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(tag = "t", content = "c", rename_all = "snake_case")]
 enum DatabaseType {
@@ -49,7 +73,7 @@ enum DatabaseType {
 #[derive(Deserialize, Serialize, Debug, Clone)]
 struct DatabaseColumn {
     name: String,
-    arity: ColumnArity,
+    arity: DatabaseColumnArity,
     tpe: DatabaseType,
 }
 
@@ -92,7 +116,7 @@ struct DatabaseTable {
 #[derive(Deserialize, Serialize, Debug, Clone)]
 struct DatabaseIndex {
     name: String,
-    tpe: IndexType,
+    tpe: DatabaseIndexType,
     columns: Vec<String>,
 }
 
@@ -106,7 +130,11 @@ impl Into<DatabaseColumn> for TableColumnWalker<'_> {
     fn into(self) -> DatabaseColumn {
         DatabaseColumn {
             name: self.name().to_string(),
-            arity: self.column_type().arity,
+            arity: match self.column_type().arity {
+                ColumnArity::Required => DatabaseColumnArity::Required,
+                ColumnArity::Nullable => DatabaseColumnArity::Nullable,
+                ColumnArity::List => DatabaseColumnArity::List,
+            },
             tpe: get_column_type(
                 self.column_native_type::<PostgresType>(),
                 self.column_type().family.clone(),
@@ -185,7 +213,12 @@ impl Into<DatabaseIndex> for IndexWalker<'_> {
     fn into(self) -> DatabaseIndex {
         DatabaseIndex {
             name: self.name().to_string(),
-            tpe: self.index_type(),
+            tpe: match self.index_type() {
+                IndexType::Unique => DatabaseIndexType::Unique,
+                IndexType::Normal => DatabaseIndexType::Normal,
+                IndexType::Fulltext => DatabaseIndexType::Fulltext,
+                IndexType::PrimaryKey => DatabaseIndexType::PrimaryKey,
+            },
             columns: self.columns().map(|c| c.name().to_string()).collect::<Vec<String>>(),
         }
     }

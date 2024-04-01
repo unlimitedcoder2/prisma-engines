@@ -13,10 +13,10 @@ use std::{
 
 type Table<'a> = (Option<Cow<'a, str>>, Cow<'a, str>);
 
-pub struct DifferDatabase<'a> {
-    pub flavour: &'a dyn SqlFlavour,
+pub(crate) struct DifferDatabase<'a> {
+    pub(super) flavour: &'a dyn SqlFlavour,
     /// The schemas being diffed
-    pub schemas: MigrationPair<&'a SqlDatabaseSchema>,
+    pub(crate) schemas: MigrationPair<&'a SqlDatabaseSchema>,
     /// Namespace name -> namespace indexes.
     namespaces: HashMap<Cow<'a, str>, MigrationPair<Option<NamespaceId>>>,
     /// Table name -> table indexes.
@@ -27,14 +27,14 @@ pub struct DifferDatabase<'a> {
     /// (table_idx, column_idx) -> ColumnChanges
     column_changes: HashMap<MigrationPair<TableColumnId>, column::ColumnChanges>,
     /// Postgres extension name -> extension indexes.
-    pub extensions: HashMap<&'a str, MigrationPair<Option<ExtensionId>>>,
+    pub(super) extensions: HashMap<&'a str, MigrationPair<Option<ExtensionId>>>,
     /// Tables that will need to be completely redefined (dropped and recreated) for the migration
     /// to succeed. It needs to be crate public because it is set from the flavour.
-    pub tables_to_redefine: BTreeSet<MigrationPair<TableId>>,
+    pub(crate) tables_to_redefine: BTreeSet<MigrationPair<TableId>>,
 }
 
 impl<'a> DifferDatabase<'a> {
-    pub fn new(schemas: MigrationPair<&'a SqlDatabaseSchema>, flavour: &'a dyn SqlFlavour) -> Self {
+    pub(crate) fn new(schemas: MigrationPair<&'a SqlDatabaseSchema>, flavour: &'a dyn SqlFlavour) -> Self {
         let namespace_count_lb = std::cmp::max(
             schemas.previous.describer_schema.namespaces_count(),
             schemas.next.describer_schema.namespaces_count(),

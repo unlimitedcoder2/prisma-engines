@@ -530,8 +530,7 @@ impl SqlRenderer for PostgresFlavour {
     }
 }
 
-// a
-pub fn render_column_type(col: TableColumnWalker<'_>, flavour: &PostgresFlavour) -> Cow<'static, str> {
+fn render_column_type(col: TableColumnWalker<'_>, flavour: &PostgresFlavour) -> Cow<'static, str> {
     let t = col.column_type();
     if let Some(enm) = col.column_type_family_as_enum() {
         let name = QuotedWithPrefix::pg_new(enm.namespace(), enm.name());

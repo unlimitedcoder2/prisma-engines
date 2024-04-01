@@ -28,8 +28,7 @@ const MIGRATIONS_TABLE_NAME: &str = "_prisma_migrations";
 
 /// The top-level SQL migration connector.
 pub struct SqlSchemaConnector {
-    #[allow(missing_docs)]
-    pub flavour: Box<dyn SqlFlavour + Send + Sync + 'static>,
+    flavour: Box<dyn SqlFlavour + Send + Sync + 'static>,
     host: Arc<dyn ConnectorHost>,
 }
 
