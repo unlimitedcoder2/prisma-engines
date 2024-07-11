@@ -17,7 +17,7 @@ use crate::{
 };
 
 /// A `model` declaration in the Prisma schema.
-pub type ModelWalker<'db> = super::Walker<'db, (FileId, ast::ModelId)>;
+pub type ModelWalker<'db> = super::Walker<'db, crate::ModelId>;
 
 impl<'db> ModelWalker<'db> {
     /// The name of the model.
@@ -28,6 +28,11 @@ impl<'db> ModelWalker<'db> {
     /// The ID of the file containing the model.
     pub fn file_id(self) -> FileId {
         self.id.0
+    }
+
+    /// Returns the specific field from the model.
+    pub fn field(&self, field_id: ast::FieldId) -> FieldWalker<'db> {
+        self.walk((self.id, field_id))
     }
 
     /// Traverse the fields of the models in the order they were defined.

@@ -6,12 +6,15 @@ use psl::{
     diagnostics::Span,
     error_tolerant_parse_configuration,
     parser_database::{ast, ParserDatabase, SourceFile},
+    schema_ast::ast::AttributePosition,
     Diagnostics, PreviewFeature,
 };
 
 use crate::LSPContext;
 
 mod datasource;
+mod multi_schema;
+mod referential_actions;
 
 pub(super) type CompletionContext<'a> = LSPContext<'a, CompletionParams>;
 
@@ -85,19 +88,38 @@ fn push_ast_completions(ctx: CompletionContext<'_>, completion_list: &mut Comple
         .relation_mode()
         .unwrap_or_else(|| ctx.connector().default_relation_mode());
 
-    match ctx.db.ast(ctx.initiating_file_id).find_at_position(position) {
+    let find_at_position = ctx.db.ast(ctx.initiating_file_id).find_at_position(position);
+
+    match find_at_position {
         ast::SchemaPosition::Model(
             _model_id,
-            ast::ModelPosition::Field(_, ast::FieldPosition::Attribute("relation", _, Some(attr_name))),
+            ast::ModelPosition::Field(
+                _,
+                ast::FieldPosition::Attribute("relation", _, AttributePosition::Argument(attr_name)),
+            ),
         ) if attr_name == "onDelete" || attr_name == "onUpdate" => {
             for referential_action in ctx.connector().referential_actions(&relation_mode).iter() {
-                completion_list.items.push(CompletionItem {
-                    label: referential_action.as_str().to_owned(),
-                    kind: Some(CompletionItemKind::ENUM),
-                    // what is the difference between detail and documentation?
-                    detail: Some(referential_action.documentation().to_owned()),
-                    ..Default::default()
-                });
+                referential_actions::referential_action_completion(completion_list, referential_action);
+            }
+        }
+
+        ast::SchemaPosition::Model(
+            _model_id,
+            ast::ModelPosition::Field(
+                _,
+                ast::FieldPosition::Attribute("relation", _, AttributePosition::ArgumentValue(attr_name, value)),
+            ),
+        ) => {
+            if let Some(attr_name) = attr_name {
+                if attr_name == "onDelete" || attr_name == "onUpdate" {
+                    ctx.connector()
+                        .referential_actions(&relation_mode)
+                        .iter()
+                        .filter(|ref_action| ref_action.to_string().starts_with(&value))
+                        .for_each(|referential_action| {
+                            referential_actions::referential_action_completion(completion_list, referential_action)
+                        });
+                }
             }
         }
 
@@ -188,12 +210,7 @@ fn push_namespaces(ctx: CompletionContext<'_>, completion_list: &mut CompletionL
             namespace.to_string()
         };
 
-        completion_list.items.push(CompletionItem {
-            label: String::from(namespace),
-            insert_text: Some(insert_text),
-            kind: Some(CompletionItemKind::PROPERTY),
-            ..Default::default()
-        })
+        multi_schema::schema_namespace_completion(completion_list, namespace, insert_text);
     }
 }
 

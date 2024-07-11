@@ -1,23 +1,27 @@
 mod actions;
 mod code_actions;
 mod get_config;
+mod get_datamodel;
 mod get_dmmf;
+mod hover;
 mod lint;
 mod merge_schemas;
 mod native;
-mod offsets;
 mod preview;
+mod references;
 mod schema_file_input;
 mod text_document_completion;
 mod validate;
 
+pub mod offsets;
+
 use log::*;
-pub use offsets::span_to_range;
 use psl::{
     datamodel_connector::Connector, diagnostics::FileId, parser_database::ParserDatabase, Configuration, Datasource,
     Generator,
 };
 use schema_file_input::SchemaFileInput;
+use serde_json::json;
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct LSPContext<'a, T> {
@@ -84,11 +88,50 @@ pub fn code_actions(schema_files: String, params: &str) -> String {
 
     let Ok(input) = serde_json::from_str::<SchemaFileInput>(&schema_files) else {
         warn!("Failed to parse schema file input");
-        return serde_json::to_string(&text_document_completion::empty_completion_list()).unwrap();
+        return serde_json::to_string(&code_actions::empty_code_actions()).unwrap();
     };
 
     let actions = code_actions::available_actions(input.into(), params);
     serde_json::to_string(&actions).unwrap()
+}
+
+pub fn references(schema_files: String, params: &str) -> String {
+    let params: lsp_types::ReferenceParams = if let Ok(params) = serde_json::from_str(params) {
+        params
+    } else {
+        warn!("Failed to parse params to references() as ReferenceParams.");
+        return serde_json::to_string(&references::empty_references()).unwrap();
+    };
+
+    let Ok(input) = serde_json::from_str::<SchemaFileInput>(&schema_files) else {
+        warn!("Failed to parse schema file input");
+        return serde_json::to_string(&references::empty_references()).unwrap();
+    };
+
+    let references = references::references(input.into(), params);
+    serde_json::to_string(&references).unwrap()
+}
+
+pub fn hover(schema_files: String, params: &str) -> String {
+    let schema: SchemaFileInput = match serde_json::from_str(&schema_files) {
+        Ok(schema) => schema,
+        Err(serde_err) => {
+            warn!("Failed to deserialize SchemaFileInput: {serde_err}");
+            return json!(null).to_string();
+        }
+    };
+
+    let params: lsp_types::HoverParams = match serde_json::from_str(params) {
+        Ok(params) => params,
+        Err(_) => {
+            warn!("Failed to deserialize Hover");
+            return json!(null).to_string();
+        }
+    };
+
+    let hover = hover::run(schema.into(), params);
+
+    serde_json::to_string(&hover).unwrap()
 }
 
 /// The two parameters are:
@@ -256,4 +299,8 @@ pub fn get_config(get_config_params: String) -> String {
 /// ```
 pub fn get_dmmf(get_dmmf_params: String) -> Result<String, String> {
     get_dmmf::get_dmmf(&get_dmmf_params)
+}
+
+pub fn get_datamodel(get_datamodel_params: String) -> Result<String, String> {
+    get_datamodel::get_datamodel(&get_datamodel_params)
 }
